@@ -7,10 +7,13 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.TypedValue
+import android.view.MotionEvent
 import android.view.View
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.properties.Delegates
+
+typealias OnCellActionListener = (row: Int, column: Int, field: TicTacToeField) -> Unit
 
 class TicTacToeView(
     context: Context,
@@ -48,6 +51,8 @@ class TicTacToeView(
             requestLayout()
             invalidate()
         }
+
+    var cellActionListener: OnCellActionListener? = null
 
     private val fieldRect = RectF()
     private var cellSize = 0f
@@ -236,10 +241,34 @@ class TicTacToeView(
         }
     }
 
-    private val onFieldChangeListener = object : OnFiledChangedListener {
-        override fun invoke(field: TicTacToeField) {
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        val field = ticTacToeField ?: return false
 
+        when(event?.action) {
+            MotionEvent.ACTION_DOWN -> {
+                return true
+            }
+            MotionEvent.ACTION_UP -> {
+
+                val x = event.x
+                val y = event.y
+
+                val row = ((y - fieldRect.top) / cellSize).toInt()
+                val column = ((x - fieldRect.left) / cellSize).toInt()
+
+                if (row in 0 until field.rows && column in 0 until field.columns) {
+                    cellActionListener?.invoke(row, column, field)
+                    return true
+                }
+
+                return false
+            }
         }
+        return false
+    }
+
+    private val onFieldChangeListener : OnFiledChangedListener = {
+        invalidate()
     }
 
     companion object {

@@ -12,6 +12,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
+    private var isPlayerXTurn = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -33,6 +35,14 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
+            }
+        }
+
+        binding.ticTacToeView.cellActionListener = { row, column, field ->
+            val cell = field[row, column]
+            if (cell == Cell.EMPTY) {
+                field[row, column] = if (isPlayerXTurn) Cell.PLAYER_X else Cell.PLAYER_O
+                isPlayerXTurn = !isPlayerXTurn
             }
         }
     }
