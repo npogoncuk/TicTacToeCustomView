@@ -3,7 +3,9 @@ package com.nazar.tictactoecustomview
 import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
+import kotlin.math.max
 import kotlin.properties.Delegates
 
 class TicTacToeView(
@@ -66,6 +68,31 @@ class TicTacToeView(
         gridColor = DEFAULT_GRID_COLOR
     }
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val minWidth = suggestedMinimumWidth + paddingLeft + paddingRight
+        val minHeight = suggestedMinimumHeight + paddingTop + paddingBottom
+
+        val desiredCellSizeInPixels = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            DESIRED_CELL_SIZE.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+
+        val rows = ticTacToeField?.rows ?: 0
+        val columns = ticTacToeField?.columns ?: 0
+        val desiredWidth = max(minWidth, columns * desiredCellSizeInPixels + paddingLeft + paddingRight)
+        val desiredHeight = max(minHeight, rows * desiredCellSizeInPixels + paddingTop + paddingBottom)
+
+        setMeasuredDimension(
+            resolveSize(desiredWidth, widthMeasureSpec),
+            resolveSize(desiredHeight, heightMeasureSpec)
+        )
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         ticTacToeField?.listeners?.add(onFieldChangeListener)
@@ -76,15 +103,19 @@ class TicTacToeView(
         ticTacToeField?.listeners?.remove(onFieldChangeListener)
     }
 
+
+
+    private val onFieldChangeListener = object : OnFiledChangedListener {
+        override fun invoke(field: TicTacToeField) {
+
+        }
+    }
+
     companion object {
         private const val DEFAULT_PLAYER1_COLOR = Color.GREEN
         private const val DEFAULT_PLAYER2_COLOR = Color.RED
         private const val DEFAULT_GRID_COLOR = Color.GRAY
 
-        private val onFieldChangeListener = object : OnFiledChangedListener {
-            override fun invoke(field: TicTacToeField) {
-
-            }
-        }
+        private val DESIRED_CELL_SIZE = 50 // in dp
     }
 }
