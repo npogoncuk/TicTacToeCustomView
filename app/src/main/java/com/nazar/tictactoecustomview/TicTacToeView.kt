@@ -2,10 +2,12 @@ package com.nazar.tictactoecustomview
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.properties.Delegates
 
 class TicTacToeView(
@@ -39,10 +41,15 @@ class TicTacToeView(
             field?.listeners?.remove(onFieldChangeListener)
             field = value
             field?.listeners?.add(onFieldChangeListener)
+            updateViewSizes()
 
             requestLayout()
             invalidate()
         }
+
+    private val fieldRect = RectF()
+    private var cellSize = 0f
+    private var cellPadding = 0f
 
     init {
         attrs
@@ -68,9 +75,15 @@ class TicTacToeView(
         gridColor = DEFAULT_GRID_COLOR
     }
 
+    private val horizontalPaddings: Int
+        get() = paddingLeft + paddingRight
+
+    private val verticalPaddings: Int
+        get() = paddingTop + paddingBottom
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val minWidth = suggestedMinimumWidth + paddingLeft + paddingRight
-        val minHeight = suggestedMinimumHeight + paddingTop + paddingBottom
+        val minWidth = suggestedMinimumWidth + horizontalPaddings
+        val minHeight = suggestedMinimumHeight + verticalPaddings
 
         val desiredCellSizeInPixels = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
@@ -80,8 +93,8 @@ class TicTacToeView(
 
         val rows = ticTacToeField?.rows ?: 0
         val columns = ticTacToeField?.columns ?: 0
-        val desiredWidth = max(minWidth, columns * desiredCellSizeInPixels + paddingLeft + paddingRight)
-        val desiredHeight = max(minHeight, rows * desiredCellSizeInPixels + paddingTop + paddingBottom)
+        val desiredWidth = max(minWidth, columns * desiredCellSizeInPixels + horizontalPaddings)
+        val desiredHeight = max(minHeight, rows * desiredCellSizeInPixels + verticalPaddings)
 
         setMeasuredDimension(
             resolveSize(desiredWidth, widthMeasureSpec),
@@ -91,6 +104,28 @@ class TicTacToeView(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
+        updateViewSizes()
+    }
+
+    private fun updateViewSizes() {
+        val field = ticTacToeField ?: return
+
+        val safeWidth = width - horizontalPaddings
+        val safeHeight = height - verticalPaddings
+
+        val cellWidth = safeWidth / field.columns.toFloat()
+        val cellHeight = safeHeight / field.rows.toFloat()
+        cellSize = min(cellWidth, cellHeight)
+
+        val fieldWidth = field.columns * cellSize
+        val fieldHeight = field.rows * cellSize
+
+        with(fieldRect) {
+            left = paddingLeft + (safeWidth - fieldWidth) / 2
+            top = paddingTop + (safeHeight - fieldHeight) / 2
+            right = left + fieldWidth
+            bottom = top + fieldHeight
+        }
     }
 
     override fun onAttachedToWindow() {
