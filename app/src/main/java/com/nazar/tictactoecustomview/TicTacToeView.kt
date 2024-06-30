@@ -46,6 +46,10 @@ class TicTacToeView(
             field?.listeners?.remove(onFieldChangeListener)
             field = value
             field?.listeners?.add(onFieldChangeListener)
+
+            currentRow = -1
+            currentColumn = -1
+
             updateViewSizes()
 
             requestLayout()
@@ -75,9 +79,13 @@ class TicTacToeView(
         }
     }
 
+    private var currentRow = -1
+    private var currentColumn = -1
+
     private lateinit var player1Paint: Paint
     private lateinit var player2Paint: Paint
     private lateinit var gridPaint: Paint
+    private lateinit var currentCellPaint: Paint
 
     init {
         attrs
@@ -85,6 +93,7 @@ class TicTacToeView(
             ?: initializeWithDefaults()
 
         initPaints()
+
         if (isInEditMode) {
             ticTacToeField = TicTacToeField(8, 6)
             ticTacToeField?.apply {
@@ -92,6 +101,9 @@ class TicTacToeView(
                 this[3, 3] = Cell.PLAYER_O
             }
         }
+
+        isFocusable = true
+        isClickable = true
     }
 
     private fun initializeAttributes(attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
@@ -111,7 +123,7 @@ class TicTacToeView(
     }
 
     private fun initPaints() {
-        fun Paint.setUpPaint(color: Int, strokeWidth: Float = 3f /* in dp*/) = this.apply {
+        fun Paint.setUpStrokePaint(color: Int, strokeWidth: Float = 3f /* in dp*/) = this.apply {
             this.flags = Paint.ANTI_ALIAS_FLAG
             this.color = color
             this.strokeWidth = TypedValue.applyDimension(
@@ -122,9 +134,14 @@ class TicTacToeView(
             this.style = Paint.Style.STROKE
         }
 
-        player1Paint = Paint().setUpPaint(player1Color)
-        player2Paint = Paint().setUpPaint(player2Color)
-        gridPaint = Paint().setUpPaint(gridColor, strokeWidth = 1.5f)
+        player1Paint = Paint().setUpStrokePaint(player1Color)
+        player2Paint = Paint().setUpStrokePaint(player2Color)
+        gridPaint = Paint().setUpStrokePaint(gridColor, strokeWidth = 1.5f)
+        currentCellPaint = Paint().apply {
+            flags = Paint.ANTI_ALIAS_FLAG
+            color = Color.DKGRAY
+            style = Paint.Style.FILL
+        }
     }
 
     override fun onAttachedToWindow() {
@@ -196,6 +213,7 @@ class TicTacToeView(
         if (cellSize == 0f || fieldRect.isEmpty) return
 
         canvas.drawGrid(field)
+        canvas.drawCurrentCell()
         canvas.drawCells(field)
     }
 
@@ -241,29 +259,73 @@ class TicTacToeView(
         }
     }
 
+    private fun Canvas.drawCurrentCell() {
+        if (currentRow == -1 || currentColumn == -1) return
+
+        val cellRect = cellRect[currentRow, currentColumn]
+        // because cellRect has paddings, but we want to highlight the whole cell
+        cellRect.apply {
+            left -= cellPadding
+            top -= cellPadding
+            right += cellPadding
+            bottom += cellPadding
+        }
+        drawRect(cellRect, currentCellPaint)
+    }
+
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         val field = ticTacToeField ?: return false
 
         when(event?.action) {
             MotionEvent.ACTION_DOWN -> {
+                updateCurrentCell(event)
                 return true
             }
+            MotionEvent.ACTION_MOVE -> {
+                updateCurrentCell(event)
+            }
             MotionEvent.ACTION_UP -> {
-
-                val x = event.x
-                val y = event.y
-
-                val row = ((y - fieldRect.top) / cellSize).toInt()
-                val column = ((x - fieldRect.left) / cellSize).toInt()
-
-                if (row in 0 until field.rows && column in 0 until field.columns) {
-                    cellActionListener?.invoke(row, column, field)
-                    return true
-                }
-
-                return false
+                return performClick()
             }
         }
+        return false
+    }
+
+    private fun getRowAndColumn(event: MotionEvent): Pair<Int, Int> {
+        val x = event.x
+        val y = event.y
+
+        val row = ((y - fieldRect.top) / cellSize).toInt()
+        val column = ((x - fieldRect.left) / cellSize).toInt()
+
+        return row to column
+    }
+
+    private fun updateCurrentCell(event: MotionEvent) {
+        val field = ticTacToeField ?: return
+
+        val (row, column) = getRowAndColumn(event)
+
+        if (row in 0 until field.rows && column in 0 until field.columns && (row != currentRow || column != currentColumn ) && field[row, column] == Cell.EMPTY) {
+            currentRow = row
+            currentColumn = column
+            invalidate()
+        }
+    }
+
+    override fun performClick(): Boolean {
+        super.performClick()
+
+        val field = this.ticTacToeField ?: return false
+
+        val row = currentRow
+        val column = currentColumn
+
+        if (row in 0 until field.rows && column in 0 until field.columns) {
+            cellActionListener?.invoke(row, column, field)
+            return true
+        }
+
         return false
     }
 
