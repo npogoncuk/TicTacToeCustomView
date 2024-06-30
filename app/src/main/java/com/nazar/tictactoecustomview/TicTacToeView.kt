@@ -32,6 +32,16 @@ class TicTacToeView(
     private var player2Color by Delegates.notNull<Int>()
     private var gridColor by Delegates.notNull<Int>()
 
+    var ticTacToeField: TicTacToeField? = null
+        set(value) {
+            field?.listeners?.remove(onFieldChangeListener)
+            field = value
+            field?.listeners?.add(onFieldChangeListener)
+
+            requestLayout()
+            invalidate()
+        }
+
     init {
         attrs
             ?.let { initializeAttributes(it, defStyleAttr, defStyleRes) }
@@ -56,9 +66,25 @@ class TicTacToeView(
         gridColor = DEFAULT_GRID_COLOR
     }
 
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        ticTacToeField?.listeners?.add(onFieldChangeListener)
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        ticTacToeField?.listeners?.remove(onFieldChangeListener)
+    }
+
     companion object {
         private const val DEFAULT_PLAYER1_COLOR = Color.GREEN
         private const val DEFAULT_PLAYER2_COLOR = Color.RED
         private const val DEFAULT_GRID_COLOR = Color.GRAY
+
+        private val onFieldChangeListener = object : OnFiledChangedListener {
+            override fun invoke(field: TicTacToeField) {
+
+            }
+        }
     }
 }
