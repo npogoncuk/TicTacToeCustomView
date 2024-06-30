@@ -12,7 +12,7 @@
     <style name="DefaultTicTacToeFieldStyle">
         <item name="player1Color">#99008800</item>
         <item name="player2Color">#87880000</item>
-        <item name="gridColor">#90DFDFDF</item>
+        <item name="gridColor">#DFDFDF</item>
     </style>
 
     <style name="GlobalTicTacToeFieldStyle" parent="DefaultTicTacToeFieldStyle">

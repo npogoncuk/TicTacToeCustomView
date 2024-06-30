@@ -26,7 +26,7 @@ class TicTacToeField(
     operator fun set(i: Int, j: Int, cell: Cell) {
         requireValidIndices(i, j)
         cells[i][j] = cell
-        listeners.forEach { it(this) }
+        listeners.forEach { it?.invoke(this) }
     }
 
     operator fun set(i: Int, j: Int, getCell: () -> Cell) {
