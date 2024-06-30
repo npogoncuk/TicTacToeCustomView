@@ -3,7 +3,20 @@
     <style name="Base.Theme.TicTacToeCustomView" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+        <item name="ticTacToeFieldStyle">@style/GlobalTicTacToeFieldStyle</item>
     </style>
 
     <style name="Theme.TicTacToeCustomView" parent="Base.Theme.TicTacToeCustomView" />
+
+    <style name="DefaultTicTacToeFieldStyle">
+        <item name="player1Color">#99008800</item>
+        <item name="player2Color">#87880000</item>
+        <item name="gridColor">#90DFDFDF</item>
+    </style>
+
+    <style name="GlobalTicTacToeFieldStyle" parent="DefaultTicTacToeFieldStyle">
+        <item name="player1Color">#850000FF</item>
+    </style>
+
 </resources>
